@@ -1,34 +1,32 @@
-import React from 'react';
-import { useParams, Link } from "react-router-dom";
-import { fetchPosts } from '../api/RedditClient';
-import Loader from './Loader';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { fetchPosts } from "../api/RedditClient";
+import Loader from "./Loader";
+import PostCard from "./PostCard";
 
-/**
- * Displays subreddit's posts
- */
 export default function AnimalSubreddit() {
-  const [posts, setPosts] = React.useState([]);
+  const [posts, setPosts] = useState([]);
   const { animal } = useParams();
 
-  React.useEffect(() => {
-    fetchPosts(animal)
-      .then(res => {
-        setPosts(res.filter(p => p.thumbnail || false));
-      })
-      .catch(err => {
-        console.log(err);
+  useEffect(() => {
+    fetchPosts(animal).then((posts) => {
+      const filteredPosts = posts.filter((post) => {
+        return post.thumbnail;
       });
+
+      setPosts(filteredPosts);
+    });
   }, [animal]);
 
-  return <div>
-    <h3>{animal}:</h3>
-    { !posts.length && <Loader /> }
-    { posts && posts.map(post => <>
-      <div key={post.title}>
-        <p>Title: {post.title}</p>
-        <p>Author: <Link to={`/authors/${post.author}`}>{post.author}</Link></p>
-        <img src={post.thumbnail} />
+  return (
+    <div>
+      <h3>Subreddit: {animal}</h3>
+      {!posts.length && <Loader />}
+      <div className="d-flex flex-wrap justify-content-between">
+        {posts.map((post) => {
+          return <PostCard key={post.id} post={post} />;
+        })}
       </div>
-    </>)}
-  </div>
+    </div>
+  );
 }

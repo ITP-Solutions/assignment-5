@@ -1,34 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchPostsByAuthor } from '../api/RedditClient';
-import Loader from './Loader';
+import { fetchPostsByAuthor } from "../api/RedditClient";
+import Loader from "./Loader";
+import PostCard from "./PostCard";
 
-/**
- * Displays subreddit's posts
- */
 export default function AuthorSubreddit() {
-  const [posts, setPosts] = React.useState([]);
+  const [posts, setPosts] = useState([]);
   const { author } = useParams();
 
-  React.useEffect(() => {
-    fetchPostsByAuthor(author)
-      .then(res => {
-        setPosts(res.filter(p => p.thumbnail || false));
-      })
-      .catch(err => {
-        console.log(err);
+  useEffect(() => {
+    fetchPostsByAuthor(author).then((postsByAuthor) => {
+      const filteredPosts = postsByAuthor.filter((post) => {
+        return post.thumbnail;
       });
+
+      setPosts(filteredPosts);
+    });
   }, [author]);
 
-  return <div>
-    <h3>{author}:</h3>
-    { !posts.length && <Loader /> }
-    { posts && posts.map(post => <>
-      <div key={post.title}>
-        <p>Title: {post.title}</p>
-        <p>Author: {post.author}</p>
-        <img src={post.thumbnail} />
+  return (
+    <div>
+      <h3>Posts by {author}</h3>
+      {!posts.length && <Loader />}
+      <div className="d-flex flex-wrap justify-content-between">
+        {posts.map((post) => {
+          return <PostCard key={post.id} post={post} hideLink={true} />;
+        })}
       </div>
-    </>)}
-  </div>
+    </div>
+  );
 }
